@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Coding/Note-Taking Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        #editor {
+            width: 80%;
+            height: 80%;
+            border: 1px solid #ccc;
+            background-color: white;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="editor" contenteditable="true"></div>
+
+<script>
+    // WebSocket connection to the server
+    const socket = new WebSocket('ws://localhost:8080');
+
+    const editor = document.getElementById('editor');
+
+    // When the editor content changes, send the change to the server
+    editor.addEventListener('input', function() {
+        const content = editor.innerText;
+        socket.send(JSON.stringify({ type: 'edit', content }));
+    });
+
+    // Listen for incoming messages from the WebSocket server
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'edit') {
+            editor.innerText = data.content;
+        }
+    };
+
+    // On WebSocket connection open
+    socket.onopen = function() {
+        console.log('Connected to WebSocket server');
+    };
+
+    // Handle WebSocket errors
+    socket.onerror = function(error) {
+        console.error('WebSocket Error: ', error);
+    };
+
+    // Handle WebSocket close
+    socket.onclose = function() {
+        console.log('Disconnected from WebSocket server');
+    };
+</script>
+
+</body>
+</html>
